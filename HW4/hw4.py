@@ -197,13 +197,14 @@ for i in range(1,101):
     if 100%i == 0:
         rebins.append(i)
 
+from scipy.stats import chisquare
 
 chi2_h1 = []
 chi2_h2 = []
 
 # calculate chi-square with different bins
 for i in rebins:
-    k = 100/i
+    k = 100/i                                 # count # of data per bin
     temp1h = np.zeros(i)
     temp2h = np.zeros(i)
     tempdt = np.zeros(i)
@@ -216,8 +217,10 @@ for i in rebins:
     chi1 = 0
     chi2 = 0
     for m in range(len(temp1h)):
-        chi1 += (tempdt[m]-temp1h[m])**2 / temp1h[m]
-        chi2 += (tempdt[m]-temp2h[m])**2 / temp2h[m]
+        #chi1 += (tempdt[m]-temp1h[m])**2 / temp1h[m]
+        #chi2 += (tempdt[m]-temp2h[m])**2 / temp2h[m]
+        chi1 = chisquare(tempdt, f_exp=temp1h)[0]
+        chi2 = chisquare(tempdt, f_exp=temp2h)[0]
     chi2_h1.append(chi1)
     chi2_h2.append(chi2)
 
