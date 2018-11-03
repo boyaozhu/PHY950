@@ -165,46 +165,43 @@ for i in range(len(thm1)):
     data[i] = float(data[i])
 
 # scale data
-sum_data = np.sum(data)                # sum data
-sum_thm1 = np.sum(thm1)                # sum h1 data
-sum_thm2 = np.sum(thm2)                # sum h2 data
-const1 = sum_data/sum_thm1             # calculate h1 scale coefficient
-const2 = sum_data/sum_thm2             # calculate h2 scale coefficient
+sum_data = np.ones(len(data))*np.sum(data)                # sum data
 
 # scale back to original data
-for i in range(len(thm1)):
-    thm1[i] = const1*thm1[i]
-    thm2[i] = const2*thm2[i]
+
+thm1 = sum_data*thm1
+thm2 = sum_data*thm2
+
+from scipy.stats import chisquare
 
 chi1 = 0
 chi2 = 0
 # calculate chi-square for h1 and h2
 for i in range(len(thm1)):
-    chi1 += (data[i]-thm1[i])**2 / thm1[i]
-    chi2 += (data[i]-thm2[i])**2 / thm2[i]
+    chi1 = chisquare(data, f_exp=thm1)[0]
+    chi2 = chisquare(data, f_exp=thm2)[0]
 print ("The Chi-square for h1 is ", chi1)
 print ("The Chi-square for h2 is ", chi2)
 
 # The Chi-square for h1 is  82.35070545536655
 # The Chi-square for h2 is  68.80411482783917
-
+# That is for 100 bins
 #################################################################################
 # (b)
 
 # calculate possible bins
+'''
 rebins = []
 for i in range(1,101):
     if 100%i == 0:
         rebins.append(i)
-
-from scipy.stats import chisquare
-
+'''
 chi2_h1 = []
 chi2_h2 = []
 
 # calculate chi-square with different bins
-for i in rebins:
-    k = 100/i                                 # count # of data per bin
+for i in range(1,101):
+    k = 100//i                                 # count # of data per bin
     temp1h = np.zeros(i)
     temp2h = np.zeros(i)
     tempdt = np.zeros(i)
@@ -217,13 +214,11 @@ for i in rebins:
     chi1 = 0
     chi2 = 0
     for m in range(len(temp1h)):
-        #chi1 += (tempdt[m]-temp1h[m])**2 / temp1h[m]
-        #chi2 += (tempdt[m]-temp2h[m])**2 / temp2h[m]
         chi1 = chisquare(tempdt, f_exp=temp1h)[0]
         chi2 = chisquare(tempdt, f_exp=temp2h)[0]
     chi2_h1.append(chi1)
     chi2_h2.append(chi2)
-
+rebins = [i for i in range(1,101)]
 # plot chi-square v.s. bins
 plt.plot(rebins, chi2_h1, label="chi_h1")
 plt.plot(rebins, chi2_h2, label="chi_h2")
