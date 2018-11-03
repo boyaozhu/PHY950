@@ -174,18 +174,19 @@ thm2 = sum_data*thm2
 
 from scipy.stats import chisquare
 
-chi1 = 0
-chi2 = 0
+chi1h = 0
+chi2h = 0
 # calculate chi-square for h1 and h2
-for i in range(len(thm1)):
-    chi1 = chisquare(data, f_exp=thm1)[0]
-    chi2 = chisquare(data, f_exp=thm2)[0]
-print ("The Chi-square for h1 is ", chi1)
-print ("The Chi-square for h2 is ", chi2)
+
+chi1h = chisquare(data, f_exp=thm1)
+chi2h = chisquare(data, f_exp=thm2)
+print ("The Chi-square for h1 is ", chi1h[0])
+print ("The Chi-square for h2 is ", chi2h[0])
 
 # The Chi-square for h1 is  82.35070545536655
 # The Chi-square for h2 is  68.80411482783917
 # That is for 100 bins
+# I also gave chi2 for 25 bin in (b)
 #################################################################################
 # (b)
 
@@ -211,15 +212,18 @@ for i in range(1,101):
             temp1h[l] += thm1[l*int(k)+j]
             temp2h[l] += thm2[l*int(k)+j]
             tempdt[l] += data[l*int(k)+j]
-    chi1 = 0
-    chi2 = 0
-    for m in range(len(temp1h)):
-        chi1 = chisquare(tempdt, f_exp=temp1h)[0]
-        chi2 = chisquare(tempdt, f_exp=temp2h)[0]
-    chi2_h1.append(chi1)
-    chi2_h2.append(chi2)
+    
+    chi1 = chisquare(tempdt, f_exp=temp1h)
+    chi2 = chisquare(tempdt, f_exp=temp2h)
+    if i == 25:
+        a = temp1h          # save value for (d)
+        b = temp2h
+        c = tempdt
+    chi2_h1.append(chi1[0])
+    chi2_h2.append(chi2[0])
 rebins = [i for i in range(1,101)]
 # plot chi-square v.s. bins
+
 plt.plot(rebins, chi2_h1, label="chi_h1")
 plt.plot(rebins, chi2_h2, label="chi_h2")
 plt.legend()
@@ -228,12 +232,81 @@ plt.xlabel("bins")
 plt.ylabel("chi_square")
 plt.show()
 
+print ("For bin of 25, as shown in the graph given, the chi2 for h1 is ", chi2_h1[24])
+print ("the chi2 for h2 is", chi2_h2[24])
+
+# if we rebin the data as 25, for example, then
+# the chi2 for h1 is  28.995462324183322
+# the chi2 for h2 is 16.19912802098431
+
 #################################################################################
 # (c)
 
+# the number of degrees of freedom is exactly the same as the number of bins
+
+#################################################################################
+# (d)
+chi21h = chisquare(c, f_exp=a, ddof = -1)
+print (chi21h[1])
+chi22h = chisquare(c, f_exp=b, ddof = -1)
+print (chi22h[1])
+# for bin = 25,
+# The chi2 for h1 is 0.26410573986601965
+# The chi2 for h2 is 0.9087695160208741
 
 
+#################################################################################
+# (e)
 
+h1 = a
+h2 = b
+chi1 = []
+chi2 = []
+ex_h1 = np.zeros(len(h1))
+ex_h2 = np.zeros(len(h2))
 
+# Monte Carlo Similation for each bins with h1 and h2 values as being mean
+for i in range(100000):           # simulate 100,000 times of experiments
+    for j in range(len(h1)):
+        ex_h1[j] = np.random.poisson(h1[j], 1)
+        ex_h2[j] = np.random.poisson(h2[j], 1)
+    chi_h1 = chisquare(ex_h1, f_exp = h1)[0]
+    chi_h2 = chisquare(ex_h2, f_exp = h2)[0]
+    chi1.append(chi_h1)
+    chi2.append(chi_h2)
 
+# plot h1 similation
+count, bins, ignored = plt.hist(chi1, 1000, normed=True)  # plot using 1,000 bins
+plt.title("chi2 of h1 3(e)")
+plt.legend()
+plt.xlabel("chi2")
+plt.ylabel("Count")
+plt.show()
+# plot h2 similation
+count2, bins2, ignored2 = plt.hist(chi2, 1000, normed=True)
+plt.title("chi2of h2 3(e)")
+plt.legend()
+plt.xlabel("chi2")
+plt.ylabel("Count")
+plt.show()
 
+newset = []
+newset2 = []
+
+# collect values for chi2 equal to or larger than those in (d)
+for i in range(1000):
+    if bins[i] >= chi2_h1[24]:
+        newset.append(count[i])
+    if bins2[i] >= chi2_h2[24]:
+        newset2.append(count2[i])
+
+# calculate the integration of p_value evaluated from chi2 obtained in (d)
+# where (bins[1]-bins[0]) specify the width of bins
+print (np.sum(newset)*(bins[1]-bins[0]))
+print (np.sum(newset2)*(bins2[1]-bins2[0]))
+
+# 0.2619699999999991
+# 0.9080200000000022
+# compared to (d)
+# 0.26410573986601965
+# 0.9087695160208741
